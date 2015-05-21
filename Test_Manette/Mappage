@@ -1,0 +1,25 @@
+sudo xboxdrv --detach-kernel-driver --silent
+
+Bouton 0 : X
+Bouton 1 : O
+Bouton 2 : carré
+Bouton 3 : triangle
+Bouton 4 : L1
+Bouton 5 : R1
+Bouton 6 : Select
+Bouton 7 : Start
+Bouton 8 : PS
+Bouton 9 : L3
+Bouton 10 : R3
+
+Axe : 	gauche gauche => min: -32768
+	gauche droite => max : 32767
+	gauche haut => max : -32768
+	gauche bas => min : 32767
+
+	droite gauche => min: -32768
+	droite droite => max : 32767
+	droite haut => max : -32768
+	droite bas => min : 32767
+
+	division par 330 pour avoir l'intervalle [-100;100] (plus ou moins)
