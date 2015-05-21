@@ -12,11 +12,7 @@ Il y a différent programme pour tester les fonctionnalités du drone.
 
 * __Test Event__ : programme d'essai pour utiliser des événements claviers.
 
-* __Pilotage Start Stop v1__ : on utilise la touche "s" et "l" pour soit Take off le drone, soit Landing le drone. On relance le réseau à chaque commande et le stop après
-
-* __Pilotage Start Stop v2__ : même chose que la version précédante à l'exeption qu'on ne relance plus le réseau après chaque commande.
-
-* __Pilotage Start Stop v3__ : même chose que la version précédante avec un code plus concie et plus simple.
+* __Pilotage Start Stop__ : on utilise la touche "s" et "l" pour soit Take off le drone, soit Landing le drone.
 
 * __Pilotage Drone Clavier__ : programme pour piloter le drone avc le clavier. 
     * 'z':avancer
@@ -47,6 +43,12 @@ Il y a différent programme pour tester les fonctionnalités du drone.
 * __Pilotage Drone CM RIU__ : programme pour piloter le drone avec au choix le clavier (C) et la manette (M) avec Récupération des informations utiles (RIU) (pitch,yaw,roll,altitude, vitesse, date) sans la vidéo.
 
 * __Test Souris__ : programme pour tester le bon fonctionnement de la souris 3D Space Explorer.
+
+* __Pilotage Drone CMS RIU__ : programme pour piloter le drone avec au choix le clavier (C), la manette (M) et la souris3D (S) avec Récupération des informations utiles (RIU) (pitch, yaw, roll, altitude, vitesse, date) sans la vidéo.
+
+* __Pilotage Drone CMSJ RIU__ : programme pour piloter le drone avec au choix le clavier (C), la manette (M), la souris3D (S) et un Joystick (J)avec Récupération des informations utiles (RIU) (pitch, yaw, roll, altitude, vitesse, date) sans la vidéo.
+
+* __Pilotage Drone CMSJ RIUV__ : programme pour piloter le drone avec au choix le clavier (C), la manette (M) et la souris3D (s) avec Récupération des informations utiles (RIU) (pitch, yaw, roll, altitude, vitesse, date) avec la vidéo mais grand problème de lag et de thread.
 
 ## Lancer un programme:
   1. se mettre dans le dossier voulu
