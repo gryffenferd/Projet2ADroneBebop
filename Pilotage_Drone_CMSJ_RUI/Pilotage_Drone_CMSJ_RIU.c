@@ -802,6 +802,7 @@ void *joystick(BD_MANAGER_t *deviceManager)
 						break;
 					case 7:
 						sendTakeoff(deviceManager);
+						deviceManager->dataPCMD.flag = 1;
 						break;
 				}
 			break;
@@ -812,25 +813,22 @@ void *joystick(BD_MANAGER_t *deviceManager)
 			case SDL_JOYAXISMOTION:
 				if(event.jaxis.axis == 0)			// si joystick droite/gauche
 				{
-					deviceManager->dataPCMD.flag = 1;	
+						
 					if(event.jaxis.value < -1000)
 						deviceManager->dataPCMD.roll = event.jaxis.value/330;
 					if(event.jaxis.value > 1000)
 						deviceManager->dataPCMD.roll = event.jaxis.value/330;
 					if(event.jaxis.value >= -1000 && event.jaxis.value <= 1000)
-						deviceManager->dataPCMD.roll = 0;							
-					deviceManager->dataPCMD.flag = 0;					
+						deviceManager->dataPCMD.roll = 0;					
 				}
 				if(event.jaxis.axis == 1)			// si joytsick haut/bas
 				{						
-					deviceManager->dataPCMD.flag = 1;	
 					if(event.jaxis.value < -1000)
 						deviceManager->dataPCMD.pitch = event.jaxis.value/(-330);
 					if(event.jaxis.value > 1000)
 						deviceManager->dataPCMD.pitch = event.jaxis.value/(-330);
 					if(event.jaxis.value >= -1000 && event.jaxis.value <= 1000)
 						deviceManager->dataPCMD.pitch = 0;
-					deviceManager->dataPCMD.flag = 0;	
 				}
 				
 				break;
@@ -883,26 +881,22 @@ void *joystick2(BD_MANAGER_t *deviceManager)
 			
 			case SDL_JOYAXISMOTION:
 				if(event.jaxis.axis == 0)			// si joystick droite/gauche
-				{	
-					deviceManager->dataPCMD.flag = 1;	
+				{		
 					if(event.jaxis.value < -1000)
 						deviceManager->dataPCMD.roll = event.jaxis.value/330;
 					if(event.jaxis.value > 1000)
 						deviceManager->dataPCMD.roll = event.jaxis.value/330;
 					if(event.jaxis.value >= -1000 && event.jaxis.value <= 1000)
-						deviceManager->dataPCMD.roll = 0;							
-					deviceManager->dataPCMD.flag = 0;					
+						deviceManager->dataPCMD.roll = 0;					
 				}
 				if(event.jaxis.axis == 1)			// si joytsick haut/bas
 				{
-					deviceManager->dataPCMD.flag = 1;	
 					if(event.jaxis.value < -1000)
 						deviceManager->dataPCMD.pitch = event.jaxis.value/(-330);
 					if(event.jaxis.value > 1000)
 						deviceManager->dataPCMD.pitch = event.jaxis.value/(-330);
 					if(event.jaxis.value >= -1000 && event.jaxis.value <= 1000)
 						deviceManager->dataPCMD.pitch = 0;
-					deviceManager->dataPCMD.flag = 0;	
 				}
 				if(event.jaxis.axis == 2 && event.jaxis.value > 0)
 				{
