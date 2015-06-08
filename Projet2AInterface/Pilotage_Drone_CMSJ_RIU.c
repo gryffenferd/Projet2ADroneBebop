@@ -58,7 +58,7 @@
 #include <libARSAL/ARSAL.h>
 #include <libARSAL/ARSAL_Print.h>
 #include <libARNetwork/ARNetwork.h>
-#include <libARNetworkAL/ARNetworkAL.h>
+#include <libARNetworkAL/ARNetworkAL.h>ř
 #include <libARDiscovery/ARDiscovery.h>
 #include <libARStream/ARStream.h>
 
@@ -111,6 +111,7 @@ extern float pitchValue;
 extern int state;
 extern int controler;
 extern GMutex *mutex[MUTEX];
+extern isCalibration;
 
 extern PCMD_t PCMD;
 extern int keyEvent;
@@ -1059,7 +1060,7 @@ float x=0; // a [-350 ; 350]
 
 /***********************************************************
  *					 		   							   *
- *            		    Main		 	   				   *
+ *            		    Drone		 	   				   *
  *					  		   							   *
  **********************************************************/
 
@@ -1254,6 +1255,17 @@ while(continuer)
         }
     }
     sendPCMD(deviceManager);
+    if(isCalibration)
+    {
+        if(g_mutex_trylock(mutex[CALIBRATION]))
+        {
+            sendDate(deviceManager);
+            sendAllSettings(deviceManager);
+            sendAllStates(deviceManager);
+            isCalibration = 0;
+            g_mutex_unlock(mutex[CALIBRATION]);
+        }
+    }
     usleep(500);
  }
 

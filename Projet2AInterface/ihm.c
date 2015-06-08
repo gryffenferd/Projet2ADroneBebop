@@ -24,24 +24,25 @@
 #include <libARStream/ARStream.h>
 
 #define LABEL 8
-#define MUTEX 8
+#define MUTEX 9
 #include "ihm.h"
 
 #include "Pilotage_Drone_CMSJ_RIU.h"
 
+/* Global value */
+float value = 0;        // battery level (0 - 100)%
+int controler = 0;      // controler choice (1 - 5)
+float sx = 0;           // speed X
+float sy = 0;           // speed Y
+float sz = 0;           // speed Z
+float altitud = 0;      // Altitude (meter)
+float rollValue = 0;    // roll (-3 - 3)
+float pitchValue = 0;   // pitch (-3 - 3)
+int state = 0;          // connexion state
+int isCalibration = 0;    // calibration
 
-float value = 0;
-int controler = 0;
-float sx = 0;
-float sy = 0;
-float sz = 0;
-float altitud = 0;
-float rollValue = 0;
-float pitchValue = 0;
-int state = 0;
-
-PCMD_t PCMD;
-int keyEvent = 0;
+PCMD_t PCMD;            // PCMD struct (int flag,int roll,int pitch,int yaw,int gaz,int takeoff,int landing,int escape)
+int keyEvent = 0;       // if KeyEvent
 
 static int ptimer[8];
 GMutex* mutex[MUTEX];
@@ -50,6 +51,17 @@ void configure(GtkWidget* widget, gpointer data)
 {
 }
 
+void calibration(GtkWidget* widget, gpointer data)
+{
+    if(g_mutex_trylock(mutex[CALIBRATION]))
+    {
+        isCalibration = 1;
+        g_mutex_unlock(mutex[CALIBRATION]);
+    }
+}
+
+/* Retrieve the speed X value (shared data) using a citical section with the SPEED mutex
+                        and modification of the widget speed X label                    */
 void speedX(gpointer data)
 {
     if(g_mutex_trylock(mutex[SPEED]))
@@ -61,6 +73,8 @@ void speedX(gpointer data)
     }
 }
 
+/* Retrieve the speed Y value (shared data) using a citical section with the SPEED mutex
+                        and modification of the widget speed Y label                    */
 void speedY(gpointer data)
 {
 
@@ -73,6 +87,8 @@ void speedY(gpointer data)
     }
 }
 
+/* Retrieve the speed Z value (shared data) using a citical section with the SPEED mutex
+                        and modification of the widget speed Z label                     */
 void speedZ(gpointer data)
 {
     if(g_mutex_trylock(mutex[SPEED]))
@@ -84,64 +100,73 @@ void speedZ(gpointer data)
     }
 }
 
+/* Retrieve the altitude value (shared data) using a citical section with the ALTITUDE mutex
+                        and modification of the widget altitude label                       */
 void altitude(gpointer data)
 {
     if(g_mutex_trylock(mutex[ALTITUDE]))
     {
         char* alt[10];
-        sprintf(alt,"%.2g",altitud);
+        sprintf(alt,"%.3g",altitud);
+        strcat(alt," m");
         g_mutex_unlock(mutex[ALTITUDE]);
         gtk_label_set_label(data,alt);
     }
 
 }
 
+/* Retrieve the roll value (shared data) using a citical section with the ATTITUDE mutex
+                        and modification of the widget roll label                      */
 void roll(gpointer data)
 {
     if(g_mutex_trylock(mutex[ATTITUDE]))
     {
-        char* rollVal[10];
-        sprintf(rollVal,"%.2g",rollValue);
+        char* rollVal[30];
+        sprintf(rollVal,"%.3g",(rollValue*60.0));
+        strcat(rollVal," °");
         g_mutex_unlock(mutex[ATTITUDE]);
         gtk_label_set_label(data,rollVal);
     }
 }
 
+/* Retrieve the pitch value (shared data) using a citical section with the ATTITUDE mutex
+                        and modification of the widget pitch label                       */
 void pitch(gpointer data)
 {
     if(g_mutex_trylock(mutex[ATTITUDE]))
     {
         char* pitchVal[10];
-        sprintf(pitchVal,"%.2g",pitchValue);
+        sprintf(pitchVal,"%.2g",pitchValue*60.0);
+        strcat(pitchVal," °");
         g_mutex_unlock(mutex[ATTITUDE]);
         gtk_label_set_label(data,pitchVal);
     }
 }
 
+/*  Retrieve the state connexion value (shared data) using a citical section with the STATE mutex
+                        and modification of the widget state label                                */
 void stateConnexion(gpointer data)
 {
-    if(g_mutex_trylock(mutex[STATE]))
-    {
         gchar* TextConverti;
         if(state == 0)
         {
-            TextConverti= g_locale_to_utf8("<span background=\"red\">Offline</span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
+            TextConverti= g_locale_to_utf8("<span background=\"red\">Offline</span>", -1, NULL, NULL, NULL);
             gtk_label_set_label(data,TextConverti);
             g_free(TextConverti);
             gtk_label_set_use_markup(GTK_LABEL(data),TRUE);
         }
         else
         {
-            TextConverti= g_locale_to_utf8("<span background=\"Green\">Online</span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
+            TextConverti= g_locale_to_utf8("<span background=\"Green\">Online</span>", -1, NULL, NULL, NULL);
             gtk_label_set_label(data,TextConverti);
             g_free(TextConverti);
             gtk_label_set_use_markup(GTK_LABEL(data),TRUE);
         }
-        g_mutex_unlock(mutex[STATE]);
-    }
-
 }
 
+/*  Retrieve the battery level (shared data) using a citical section with the BATTERY mutex
+    and modification of the widget battery barre.
+    The value retrieve by the Bebop Drone is a percentage. The value is divised by 100. */
 void progress(gpointer data)
 {
     if(g_mutex_trylock(mutex[BATTERY]))
@@ -153,9 +178,10 @@ void progress(gpointer data)
     }
 }
 
+/*  Event Key Release
+    The PCMD is reset when a key is release */
 gboolean on_key_release(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
-    g_print("Je relache");
         PCMD.escape = 0;
         PCMD.flag = 0;
         PCMD.gaz = 0;
@@ -167,6 +193,7 @@ gboolean on_key_release(GtkWidget *widget, GdkEventKey *event, gpointer user_dat
         keyEvent = 1;
 }
 
+/* Event Key Pressed */
 gboolean on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
   switch (event->keyval)
@@ -220,11 +247,12 @@ gboolean on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data
   return FALSE;
 }
 
+/* GUI */
 void mainWindow(int argc, char** argv)
 {
     /* Variables */
     GtkWidget* MainWindow;
-    GtkWidget* Button[2];
+    GtkWidget* Button[3];
     GtkWidget* Table = NULL;
     GtkWidget* barre = NULL;
     GtkWidget* label[15];
@@ -239,40 +267,38 @@ void mainWindow(int argc, char** argv)
     ihm->argv = argv;
     ihm->Window = NULL;
 
+    /* Drone thread */
     thread = g_thread_create(drone,ihm,FALSE,&error);
-
     if(!thread)
     {
         g_print("Error: %s\n",error->message);
         return(-1);
     }
 
-    /* Création de la fenêtre */
+    /* Window creation */
     MainWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    g_signal_connect(G_OBJECT(MainWindow), "delete-event", G_CALLBACK(gtk_main_quit), NULL);
-    g_signal_connect (G_OBJECT (MainWindow), "key_press_event", G_CALLBACK (on_key_press), NULL);
-    g_signal_connect(G_OBJECT (MainWindow),"key_release_event",G_CALLBACK(on_key_release),NULL);
 
-    /* Personalisation de la fenêtre */
+    /* Window parameter */
     gtk_window_set_title(GTK_WINDOW(MainWindow),"Bebop Drone Controler");   // Titre
     gtk_window_set_default_size(GTK_WINDOW(MainWindow),600,500);            // Taille
     gtk_window_set_position(GTK_WINDOW(MainWindow),GTK_WIN_POS_CENTER);     // Position
     gtk_window_set_icon_from_file(GTK_WINDOW(MainWindow),"drone.png",NULL); // icone du logiciel
     gtk_rc_parse("style.txt");
 
-    /* Création des bouton */
+    /* Button creation */
     Button[0] = gtk_button_new_with_label("Configuration");
     Button[1] = gtk_button_new_with_label("Video");
+    Button[2] = gtk_button_new_with_label("Calibration");
 
-    /* Création de la barre */
+    /* Progression Bar Creation */
     barre = gtk_progress_bar_new();
     gtk_progress_bar_update(GTK_PROGRESS_BAR(barre),value);
 
-    /* Création de la table */
+    /* Table creation */
     Table = gtk_table_new(10,8,TRUE);
     gtk_container_add(GTK_CONTAINER(MainWindow),Table);
 
-    /* Personnalisation des labels */
+    /* Labels personalization */
     TextConverti[0] = g_locale_to_utf8("<span><b>Stat Connexion</b></span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
     TextConverti[1] = g_locale_to_utf8("<span><b>X Speed :</b></span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
     TextConverti[2] = g_locale_to_utf8("<span><b>Y Speed :</b></span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
@@ -282,7 +308,7 @@ void mainWindow(int argc, char** argv)
     TextConverti[6] = g_locale_to_utf8("<span><b>Roll :</b></span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
     TextConverti[7] = g_locale_to_utf8("<span><b>Pitch :</b></span>", -1, NULL, NULL, NULL);  //Convertion du texte avec les balises
 
-    /* Création des labels */
+    /* Labels creation */
     int i=0;
     for(i=0;i<LABEL;i++)
     {
@@ -298,13 +324,15 @@ void mainWindow(int argc, char** argv)
     label[12] = gtk_label_new("0");
     label[13] = gtk_label_new("0");
 
-    TextConverti[LABEL]= g_locale_to_utf8("<span background=\"red\">Offline</span>", -1, NULL, NULL, NULL);  //Convertion du texte ave
+    TextConverti[LABEL]= g_locale_to_utf8("<span background=\"red\">Offline</span>", -1, NULL, NULL, NULL);
     label[14] = gtk_label_new(TextConverti[LABEL]);
     g_free(TextConverti[LABEL]);
     gtk_label_set_use_markup(GTK_LABEL(label[14]),TRUE);
 
-    /* Ajout des éléments dans le tableau */
+    /* Add widget in the table */
     gtk_table_attach(GTK_TABLE(Table),Button[1],2,6,1,8,GTK_EXPAND | GTK_FILL,GTK_EXPAND | GTK_FILL,0,0);
+    gtk_table_attach(GTK_TABLE(Table),Button[0],0,1,9,10,GTK_EXPAND | GTK_FILL,GTK_EXPAND | GTK_FILL,0,0);
+    gtk_table_attach(GTK_TABLE(Table),Button[2],7,8,9,10,GTK_EXPAND | GTK_FILL,GTK_EXPAND | GTK_FILL,0,0);
     gtk_table_attach(GTK_TABLE(Table),barre,3,5,8,9,GTK_EXPAND | GTK_FILL,GTK_EXPAND,0,0);
     gtk_table_attach(GTK_TABLE(Table),label[0],2,4,0,1,GTK_EXPAND | GTK_FILL,GTK_EXPAND,0,0);
     gtk_table_attach(GTK_TABLE(Table),label[1],0,1,3,4,GTK_EXPAND| GTK_FILL,GTK_EXPAND,0,0);
@@ -321,11 +349,12 @@ void mainWindow(int argc, char** argv)
     gtk_table_attach(GTK_TABLE(Table),label[12],7,8,3,4,GTK_EXPAND | GTK_FILL,GTK_EXPAND,0,0);
     gtk_table_attach(GTK_TABLE(Table),label[13],7,8,4,5,GTK_EXPAND | GTK_FILL,GTK_EXPAND,0,0);
     gtk_table_attach(GTK_TABLE(Table),label[14],4,5,0,1,GTK_EXPAND | GTK_FILL,GTK_EXPAND,0,0);
-    gtk_table_attach(GTK_TABLE(Table),Button[0],0,1,9,10,GTK_EXPAND | GTK_FILL,GTK_EXPAND | GTK_FILL,0,0);
 
-    /* Évènement sur click du bouton */
-    g_signal_connect(G_OBJECT(Button[0]),"clicked",G_CALLBACK(configure),NULL);    //évènement sur le bouton
+    /* Event on button click */
+    g_signal_connect(G_OBJECT(Button[0]),"clicked",G_CALLBACK(configure),NULL);
+    g_signal_connect(G_OBJECT(Button[2]),"clicked",G_CALLBACK(calibration),NULL);
 
+    /* Timers to refresh the layout */
     ptimer[0] = gtk_timeout_add (1000, progress, barre);
     ptimer[1] = gtk_timeout_add (100, speedX, label[8]);
     ptimer[2] = gtk_timeout_add (101, speedY, label[9]);
@@ -333,12 +362,17 @@ void mainWindow(int argc, char** argv)
     ptimer[4] = gtk_timeout_add (103, altitude, label[11]);
     ptimer[5] = gtk_timeout_add (104, roll, label[12]);
     ptimer[6] = gtk_timeout_add (105, pitch, label[13]);
-    ptimer[7] = gtk_timeout_add (2000,stateConnexion, label[14]);
+    ptimer[7] = gtk_timeout_add (5000,stateConnexion, label[14]);
 
-    /* Affichage et boucle évènementielle */
+    /* Display and event loop */
     gtk_widget_show_all(MainWindow);
+    g_signal_connect(G_OBJECT(MainWindow), "delete-event", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect (G_OBJECT (MainWindow), "key_press_event", G_CALLBACK (on_key_press), NULL);
+    g_signal_connect(G_OBJECT (MainWindow),"key_release_event",G_CALLBACK(on_key_release),NULL);
 }
 
+/*  The keypad controler choice
+    The shared data controler is modified */
 void keypadIHM(GtkWidget* widget, void* data)
 {
     if(g_mutex_trylock(mutex[CONTROLER]))
@@ -351,6 +385,8 @@ void keypadIHM(GtkWidget* widget, void* data)
     }
 }
 
+/*  The joypad controler choice
+    The shared data controler is modified */
 void joypadIHM(GtkWidget* widget, void* data)
 {
     if(g_mutex_trylock(mutex[CONTROLER]))
@@ -363,6 +399,8 @@ void joypadIHM(GtkWidget* widget, void* data)
     }
 }
 
+/*  The joystick controler choice
+    The shared data controler is modified */
 void joystickIHM(GtkWidget* widget, void* data)
 {
     if(g_mutex_trylock(mutex[CONTROLER]))
@@ -375,6 +413,8 @@ void joystickIHM(GtkWidget* widget, void* data)
     }
 }
 
+/*  The mouse3D controler choice
+    The shared data controler is modified */
 void mouse3dIHM(GtkWidget* widget, void* data)
 {
     if(g_mutex_trylock(mutex[CONTROLER]))
@@ -387,6 +427,7 @@ void mouse3dIHM(GtkWidget* widget, void* data)
     }
 }
 
+/* GUI : choice of the drone controler */
 void choice(int argc,char** argv)
 {
     GtkWidget* Window = NULL;
@@ -436,6 +477,7 @@ void choice(int argc,char** argv)
     gtk_widget_show_all(Window);
 }
 
+/* The main program */
 int main(int argc,char** argv)
 {
     PCMD.escape = 0;
@@ -458,8 +500,10 @@ int main(int argc,char** argv)
     for(i=0;i<MUTEX;i++)
         mutex[i] = g_mutex_new();
 
-    /* Initialisation de GTK+ */
+    /* Initialisation of GTK+ */
     gtk_init(&argc, &argv);
+
+    /* Launch the GUI choice */
     choice(argc,argv);
 
     gtk_main();

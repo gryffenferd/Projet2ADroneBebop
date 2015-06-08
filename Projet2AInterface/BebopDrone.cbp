@@ -35,7 +35,7 @@
 			<Add option="-pthread" />
 			<Add option="-lX11" />
 			<Add option="-lSDL" />
-			<Add directory="../sdk/ARSDKBuildUtils/Targets/Unix/Install/include" />
+			<Add directory="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/include" />
 			<Add directory="../Projet2AInterface" />
 		</Compiler>
 		<Linker>
@@ -44,13 +44,13 @@
 			<Add option="-lX11" />
 			<Add option="-lSDL" />
 			<Add option="-Wall" />
-			<Add library="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarcommands.so" />
-			<Add library="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libardiscovery.so" />
-			<Add library="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarnetwork.so" />
-			<Add library="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarnetworkal.so" />
-			<Add library="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarsal.so" />
-			<Add library="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarstream.so" />
-			<Add directory="../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib" />
+			<Add library="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarcommands.so" />
+			<Add library="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libardiscovery.so" />
+			<Add library="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarnetwork.so" />
+			<Add library="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarnetworkal.so" />
+			<Add library="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarsal.so" />
+			<Add library="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib/libarstream.so" />
+			<Add directory="../../../sdk/ARSDKBuildUtils/Targets/Unix/Install/lib" />
 		</Linker>
 		<Unit filename="Pilotage_Drone_CMSJ_RIU.c">
 			<Option compilerVar="CC" />

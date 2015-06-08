@@ -9,10 +9,10 @@ enum {
     SPEED,
     ATTITUDE,
     BATTERY,
-    STATE,
     CONTROLER,
     EVENT,
-    PCMDNUM
+    PCMDNUM,
+    CALIBRATION
 };
 
 struct PCMD_t
@@ -30,6 +30,8 @@ struct PCMD_t
 typedef struct PCMD_t PCMD_t;
 
 void configure(GtkWidget* widget, gpointer data);
+void calibration(GtkWidget* widget, gpointer data);
+
 void progress(gpointer data);
 void mainWindow(int argc,char** argv);
 void speedX(gpointer data);
